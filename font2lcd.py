@@ -16,6 +16,7 @@ def main():
 	parser = argparse.ArgumentParser(description='Converts a standard NES-formatted bitmap font to an LCD font.')
 	parser.add_argument('infile', help='input font filename')
 	parser.add_argument('outfile', nargs='?', help='output font filename')
+	parser.add_argument('-s', dest='spacewidth', type=int, default=_spacewidth_, help='width of space char (default: %(default)s)')
 	args = parser.parse_args()
 	
 	fd = open(args.infile, 'rb')
@@ -26,7 +27,7 @@ def main():
 		chbytes = fd.read(8)
 		if len(chbytes) < 8:
 			break
-		outbytes += reformat(chbytes)
+		outbytes += reformat(chbytes, args.spacewidth)
 		
 	if len(sys.argv) > 2:
 		outfname = args.outfile
@@ -37,7 +38,7 @@ def main():
 	outfd.write(outbytes)
 	outfd.close()
 	
-def reformat(bytes):
+def reformat(bytes, spacewidth):
 	# Transpose the bytes
 	trans = transpose(bytes)
 	
@@ -47,9 +48,9 @@ def reformat(bytes):
 	while len(trans) > 0 and trans[-1] == chr(0):
 		trans = trans[:-1]
 	
-	# Add one pixel space, or _spacewidth_ if character is empty
+	# Set width to spacewidth if character is empty
 	if len(trans) == 0:
-		trans = chr(0) * (_spacewidth_-1)
+		trans = chr(0) * (spacewidth-1)
 	
 	trans = chr(len(trans)) + trans
 	return trans
